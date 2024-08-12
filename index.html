@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>fakebook 신상 뽑기</title>
+    <style>
+        body, html {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            font-family: Arial, sans-serif;
+            background-color: #ffffff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .container {
+            width: 100%;
+            max-width: 500px;
+            text-align: center;
+        }
+        .logo {
+            font-size: 48px;
+            font-weight: bold;
+            color: #1877f2;
+            margin-bottom: 10px;
+        }
+        .subtitle {
+            font-size: 24px;
+            margin-bottom: 20px;
+        }
+        .image-container {
+            width: 300px;
+            height: 300px;
+            margin: 20px auto;
+            border-radius: 50%;
+            overflow: hidden;
+            background-color: #000;
+        }
+        .image-container img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+        button {
+            padding: 10px 20px;
+            font-size: 18px;
+            background-color: #1877f2;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 20px;
+        }
+        .info {
+            margin-top: 20px;
+            font-size: 18px;
+            opacity: 0;
+            transition: opacity 0.5s ease-in-out;
+        }
+        #slide2, #slide3, #slide4 {
+            display: none;
+        }
+        .blue-text {
+            color: blue;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div id="slide1">
+            <div class="logo">fakebook</div>
+            <div class="subtitle">신상 뽑기</div>
+            <div class="image-container">
+                <img id="randomImage" src="" alt="Random Profile">
+            </div>
+            <button id="pushButton">PUSH</button>
+        </div>
+        <div id="slide2">
+            <div class="subtitle">당신께 선물할 신상을 찾는 중...</div>
+            <div class="image-container">
+                <img id="fastRandomImage" src="" alt="Fast Random Profile">
+            </div>
+            <div class="subtitle">~ing</div>
+        </div>
+        <div id="slide3">
+            <div id="followerCount" class="info"></div>
+            <div id="info1" class="info"></div>
+            <div id="info2" class="info"></div>
+            <div id="info3" class="info"></div>
+        </div>
+        <div id="slide4">
+            <div class="image-container">
+                <img id="selectedImage" src="" alt="Selected Profile">
+            </div>
+            <div id="selectedInfo" class="info"></div>
+            <button id="oneMoreButton">ONE MORE</button>
+        </div>
+    </div>
+
+    <script>
+        const profiles = [
+            { name: 'BJ꾀돌이', imageName: 'BJ 꾀돌이.png', followers: 50000, info: ['💼콘텐츠 크리에이터', '🖥️정규방송 매일 19시', '🕺합방,광고,협찬문의DM'], maxAppearances: 20 },
+            { name: '규용', imageName: '규용.png', followers: 43000000, info: ['🎤 @LEON5 리더', '💼스텔즈엔터테인먼트', '🎂2001. 4. 20.'], maxAppearances: 20 },
+            { name: '마루', imageName: '마루.png', followers: 1250, info: ['🐶말티즈', '💖@이유원 여동생', '🍠고구마 좋아'], maxAppearances: 20 },
+            { name: '망고', imageName: '망고.png', followers: 1190, info: ['🐶꼬똥 드 툴레아', '💖@홍지원 남동생', '🍠고구마 좋아'], maxAppearances: 20 },
+            { name: '무화과TV', imageName: '무화과TV.png', followers: 3300000, info: ['🎁검열 없는 무화과 TV', '🔥너무 핫해서 불탄다', '💦 생생한 라이브 방송'], maxAppearances: 20 },
+            { name: '서수민', imageName: '서수민.png', followers: 21000, info: ['💼회사원', '🎬@환승사랑시즌7 출연', '🩷@이재형 님과 연애 중'], maxAppearances: 20 },
+            { name: '서준', imageName: '서준.png', followers: 36000000, info: ['🎤 @LEON5 서브보컬', '💼스텔즈엔터테인먼트', '🎂2005. 8. 23.'], maxAppearances: 20 },
+            { name: '양건수', imageName: '양건수.png', followers: 6, info: ['🎂 64년 용띠', '💼 수능.각종고시.경찰행정시험. 만점.석차1위', '🎓 하바드.서울대.예일. 카이스터 수료'], maxAppearances: 20 },
+            { name: '이두철', imageName: '이두철.png', followers: 48, info: ['💼산사랑산악회 2대 회장', '🇰🇷 해병대416기', '❤️ @박순덕 님과 결혼'], maxAppearances: 20 },
+            { name: '이영미', imageName: '이영미.png', followers: 770, info: ['🩷도연&서준맘', '💰으쌰으쌰', '🏫부산광역시'], maxAppearances: 20 },
+            { name: '이월', imageName: '이월.png', followers: 31000, info: ['🎤 싱어송라이터', '💼 스텔즈엔터테인먼트', '💜 디지털 싱글 \'코르륵\''], maxAppearances: 20 },
+            { name: '잔다르크', imageName: '잔다르크.png', followers: 2100, info: ['💼발루아 왕조 지휘관', '💰펀드매니저', '🎂1412. 1. 6.'], maxAppearances: 20 },
+            { name: '장재영', imageName: '장재영.png', followers: 32, info: ['💼베이시스트', '🎓@돌마대학교 국어국문학과', '❤️자유로운 연애 중'], maxAppearances: 20 },
+            { name: '제이미', imageName: '제이미.png', followers: 33000000, info: ['🎤 @LEON5 Rapper', '💼스텔즈엔터테인먼트', '🎂1998. 1. 15.'], maxAppearances: 20 },
+            { name: '정윤지', imageName: '정윤지.png', followers: 330, info: ['🎨디자이너', '💼@반지하게임즈 공동대표', '🎸노엘 갤러거 충신'], maxAppearances: 20 },
+            { name: '지호', imageName: '지호.png', followers: 36000000, info: ['🎤 @LEON5 서브보컬', '💼 스텔즈엔터테인먼트', '🎂 2005. 8. 23.'], maxAppearances: 20 },
+            { name: '차세동', imageName: '차세동.png', followers: 7000, info: ['‍🧑‍🚀춤추는우주인', '🚀같이 우주 갈 사람 DM', '❤️ 연애중'], maxAppearances: 20 },
+            { name: '최진영', imageName: '최진영.png', followers: 280, info: ['🎓한국외국어대학교', '💼반지하게임즈 개발자', '🎲가챠 중독자'], maxAppearances: 20 },
+            { name: '황서준', imageName: '황서준.png', followers: 15, info: ['🎓호복초등학교', '🦖ㅋㅋ.ㅋㅋ', '🔫왜??ㅁ'], maxAppearances: 20 },
+            { name: '환재', imageName: '환재.png', followers: 49000000, info: ['🎤 @LEON5 메인보컬', '💼스텔즈엔터테인먼트', '🎂2004. 6. 21.'], maxAppearances: 20 }
+        ];
+
+        let currentIndex = 0;
+        let selectionCounts = {};
+        profiles.forEach(profile => selectionCounts[profile.name] = 0);
+
+        function showSlide(slideId) {
+            document.querySelectorAll('.container > div').forEach(slide => slide.style.display = 'none');
+            document.getElementById(slideId).style.display = 'block';
+        }
+
+        function formatNumber(num) {
+            if (num >= 1000000) {
+                return (num / 1000000).toFixed(1) + 'M';
+            } else if (num >= 1000) {
+                return (num / 1000).toFixed(1) + 'K';
+            }
+            return num.toString();
+        }
+
+        function updateRandomImage() {
+            const randomProfile = profiles[currentIndex];
+            const img = document.getElementById('randomImage');
+            img.src = `images/${randomProfile.imageName}`;
+            img.alt = randomProfile.name;
+            img.onerror = function() {
+                console.error(`이미지 로드 실패: images/${randomProfile.imageName}`);
+                this.alt = randomProfile.name;
+            };
+            currentIndex = (currentIndex + 1) % profiles.length;
+        }
+
+        function updateFastRandomImage() {
+            const randomProfile = profiles[Math.floor(Math.random() * profiles.length)];
+            const img = document.getElementById('fastRandomImage');
+            img.src = `images/${randomProfile.imageName}`;
+            img.alt = randomProfile.name;
+            img.onerror = function() {
+                console.error(`이미지 로드 실패: images/${randomProfile.imageName}`);
+                this.alt = randomProfile.name;
+            };
+        }
+
+        function selectProfile() {
+            showSlide('slide2');
+            let fastInterval = setInterval(updateFastRandomImage, 100);
+            
+            setTimeout(() => {
+                clearInterval(fastInterval);
+                let availableProfiles = profiles.filter(profile => selectionCounts[profile.name] < profile.maxAppearances);
+                if (availableProfiles.length === 0) {
+                    alert('모든 프로필이 최대 등장 횟수에 도달했습니다.');
+                    showSlide('slide1');
+                    return;
+                }
+                let selectedProfile = availableProfiles[Math.floor(Math.random() * availableProfiles.length)];
+                selectionCounts[selectedProfile.name]++;
+                
+                showSlide('slide3');
+                document.querySelectorAll('#slide3 .info').forEach(el => el.style.opacity = '0');
+                
+                setTimeout(() => {
+                    document.getElementById('followerCount').textContent = `${formatNumber(selectedProfile.followers)} followers`;
+                    document.getElementById('followerCount').style.opacity = '1';
+                    
+                    setTimeout(() => {
+                        document.getElementById('info1').innerHTML = formatInfo(selectedProfile.info[0]);
+                        document.getElementById('info1').style.opacity = '1';
+                        setTimeout(() => {
+                            document.getElementById('info2').innerHTML = formatInfo(selectedProfile.info[1]);
+                            document.getElementById('info2').style.opacity = '1';
+                            setTimeout(() => {
+                                document.getElementById('info3').innerHTML = formatInfo(selectedProfile.info[2]);
+                                document.getElementById('info3').style.opacity = '1';
+                                setTimeout(() => {
+                                    showFinalResult(selectedProfile);
+                                }, 1000);
+                            }, 1000);
+                        }, 1000);
+                    }, 1000);
+                }, 1000);
+            }, 4000);
+        }
+
+        function formatInfo(info) {
+            return info.replace(/@(\S+)/, '<span class="blue-text">@$1</span>');
+        }
+
+        function showFinalResult(profile) {
+            showSlide('slide4');
+            const img = document.getElementById('selectedImage');
+            img.src = `images/${profile.imageName}`;
+            img.alt = profile.name;
+            img.onerror = function() {
+                console.error(`이미지 로드 실패: images/${profile.imageName}`);
+                this.alt = profile.name;
+            };
+            document.getElementById('selectedInfo').innerHTML = `
+                <strong>${profile.name}</strong><br>
+                <strong>${formatNumber(profile.followers)} followers</strong><br>
+                ${profile.info.map(formatInfo).join('<br>')}
+            `;
+            document.getElementById('selectedInfo').style.opacity = '1';
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            updateRandomImage(); // 초기 이미지 로드
+            setInterval(updateRandomImage, 1500);
+            document.getElementById('pushButton').addEventListener('click', selectProfile);
+            document.getElementById('oneMoreButton').addEventListener('click', () => showSlide('slide1'));
+        });
+    </script>
+</body>
+</html>
