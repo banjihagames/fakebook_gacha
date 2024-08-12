@@ -145,10 +145,10 @@
         function updateRandomImage() {
             const randomProfile = profiles[currentIndex];
             const img = document.getElementById('randomImage');
-            img.src = `images/${randomProfile.imageName}`;
+            img.src = `./images/${randomProfile.imageName}`;
             img.alt = randomProfile.name;
             img.onerror = function() {
-                console.error(`이미지 로드 실패: images/${randomProfile.imageName}`);
+                console.error(`이미지 로드 실패: ./images/${randomProfile.imageName}`);
                 this.alt = randomProfile.name;
             };
             currentIndex = (currentIndex + 1) % profiles.length;
@@ -157,10 +157,10 @@
         function updateFastRandomImage() {
             const randomProfile = profiles[Math.floor(Math.random() * profiles.length)];
             const img = document.getElementById('fastRandomImage');
-            img.src = `images/${randomProfile.imageName}`;
+            img.src = `./images/${randomProfile.imageName}`;
             img.alt = randomProfile.name;
             img.onerror = function() {
-                console.error(`이미지 로드 실패: images/${randomProfile.imageName}`);
+                console.error(`이미지 로드 실패: ./images/${randomProfile.imageName}`);
                 this.alt = randomProfile.name;
             };
         }
@@ -213,10 +213,10 @@
         function showFinalResult(profile) {
             showSlide('slide4');
             const img = document.getElementById('selectedImage');
-            img.src = `images/${profile.imageName}`;
+            img.src = `./images/${profile.imageName}`;
             img.alt = profile.name;
             img.onerror = function() {
-                console.error(`이미지 로드 실패: images/${profile.imageName}`);
+                console.error(`이미지 로드 실패: ./images/${profile.imageName}`);
                 this.alt = profile.name;
             };
             document.getElementById('selectedInfo').innerHTML = `
