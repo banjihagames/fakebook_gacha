@@ -1,0 +1,591 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+   <meta charset="UTF-8">
+   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+   <title>페이크북 메신저 추첨</title>
+   <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css">
+   <style>
+       * {
+           margin: 0;
+           padding: 0;
+           box-sizing: border-box;
+           font-family: 'Pretendard', sans-serif;
+       }
+
+       body {
+           display: flex;
+           flex-direction: column;
+           align-items: center;
+           justify-content: center;
+           min-height: 100vh;
+           background: #f0f0f0;
+           padding: 20px;
+       }
+
+        .image-upload {
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .image-upload-button {
+            background: #0084ff;
+            color: white;
+            padding: 8px 15px;
+            border-radius: 5px;
+            border: none;
+            cursor: pointer;
+            font-size: 14px;
+            margin-bottom: 10px;
+        }
+
+        .image-upload-button:hover {
+            background: #0073e6;
+        }
+
+        #imageInput {
+            display: none;
+        }
+
+        .messenger-container {
+            width: 100%;
+            max-width: 380px;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .messenger-header {
+            background: #0084ff;
+            color: white;
+            padding: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .profile-img {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            object-fit: cover;
+            background: #fff;
+        }
+
+        .profile-img-default {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #ddd;
+            color: #666;
+            font-size: 20px;
+        }
+
+        .chat-area {
+    height: 400px;
+    padding: 20px 20px 50px;
+    overflow-y: auto;
+    background: #e9ebee;
+}
+
+        .message {
+            margin-bottom: 10px;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: opacity 0.5s, transform 0.5s;
+        }
+
+        .message.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .message-bubble {
+            max-width: 80%;
+            padding: 10px 15px;
+            border-radius: 20px;
+            margin-bottom: 5px;
+            display: inline-block;
+            font-weight: 400;
+        }
+
+        .message.received .message-bubble {
+            background: #f1f0f0;
+        }
+
+        .message.sent .message-bubble {
+            background: #0084ff;
+            color: white;
+            float: right;
+        }
+
+        .draw-button {
+            width: 100%;
+            padding: 15px;
+            background: #0084ff;
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background 0.3s;
+            font-weight: 600;
+        }
+
+        .draw-button:disabled {
+            background: #cccccc;
+        }
+
+        .typing-indicator {
+    display: inline-flex; /* 텍스트 길이에 맞게 */
+    justify-content: center;
+    align-items: center;
+    max-width: 80%; /* 메시지의 최대 폭 */
+    padding: 10px 15px; /* 메시지와 동일한 패딩 */
+    border-radius: 20px; /* 둥근 모서리 */
+    background: #f1f0f0; /* 메시지 배경색과 일치 */
+    gap: 5px; /* 점 간격 */
+    width: auto; /* 길이에 맞게 자동 조정 */
+}
+
+.typing-indicator span {
+    width: 8px;
+    height: 8px;
+    background: #90949c;
+    border-radius: 50%;
+    animation: typing-wave 1.4s infinite;
+    opacity: 0.5;
+}
+
+
+        @keyframes typing {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-5px); }
+        }
+
+        .typing-indicator span:nth-child(2) { animation-delay: 0.2s; }
+        .typing-indicator span:nth-child(3) { animation-delay: 0.4s; }
+
+        .result-animation {
+            animation: popIn 0.5s ease-out;
+        }
+
+        @keyframes popIn {
+            0% { transform: scale(0.5); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        @keyframes fadeOut {
+            from { opacity: 1; }
+            to { opacity: 0; }
+        }
+
+        /* 좋아요 효과 관련 스타일 */
+
+       .like-button {
+           position: absolute;
+           right: -20px;
+           bottom: -10px;
+           background: white;
+           border-radius: 50%;
+           width: 25px;
+           height: 25px;
+           display: flex;
+           align-items: center;
+           justify-content: center;
+           box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+           cursor: pointer;
+           opacity: 0;
+           transform: scale(0);
+           transition: all 0.3s ease;
+       }
+
+
+       .liked .like-button {
+           background: #0084ff;
+           color: white;
+           opacity: 1;
+           transform: scale(1);
+       }
+
+       /* 파티클 효과 컨테이너 */
+       .particles-container {
+           position: fixed;
+           top: 0;
+           left: 0;
+           width: 100%;
+           height: 100%;
+           pointer-events: none;
+           z-index: 1000;
+       }
+
+       .particle {
+           position: absolute;
+           pointer-events: none;
+           animation: particle-animation 1s ease-out forwards;
+       }
+
+       @keyframes particle-animation {
+           0% {
+               transform: translate(0, 0) scale(1);
+               opacity: 1;
+           }
+           100% {
+               transform: translate(var(--tx), var(--ty)) scale(0);
+               opacity: 0;
+           }
+       }
+
+       /* 스타일에 추가 */
+.like-section {
+    padding: 10px 20px;
+    background: white;
+    border-top: 1px solid #e9ebee;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.like-count-button {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    padding: 8px 16px;
+    border: none;
+    border-radius: 20px;
+    background: #f0f2f5;
+    cursor: pointer;
+    transition: background 0.2s;
+    font-family: 'Pretendard', sans-serif;
+    font-size: 14px;
+}
+
+.like-count-button:hover {
+    background: #e4e6ea;
+}
+
+.like-count-button:active {
+    transform: scale(0.98);
+}
+
+.like-icon {
+    font-size: 16px;
+}
+
+.like-counter {
+    font-size: 14px;
+    color: #65676b;
+    font-weight: 500;
+}
+
+       /* 당첨 효과 */
+       .win-effect {
+           position: fixed;
+           top: 0;
+           left: 0;
+           width: 100%;
+           height: 100%;
+           pointer-events: none;
+           opacity: 0;
+           transition: opacity 0.5s;
+           z-index: 999;
+       }
+
+       .win-effect.gold {
+           background: radial-gradient(circle at center, rgba(255,215,0,0.3) 0%, transparent 70%);
+       }
+
+       .win-effect.silver {
+           background: radial-gradient(circle at center, rgba(192,192,192,0.3) 0%, transparent 70%);
+       }
+
+       /* 개선된 타이핑 인디케이터 */
+       .typing-indicator {
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+    gap: 5px;
+    padding: 15px;
+    border-radius: 20px;
+    background: #f1f0f0;
+    width: auto;
+    min-width: 48px;
+}
+
+.typing-indicator span {
+    width: 8px;
+    height: 8px;
+    background: #90949c;
+    border-radius: 50%;
+    animation: typing-wave 1.4s infinite;
+    opacity: 0.5;
+    display: inline-block;
+}
+
+       @keyframes typing-wave {
+           0%, 60%, 100% {
+               transform: translateY(0);
+           }
+           30% {
+               transform: translateY(-10px);
+           }
+       }
+
+       .typing-indicator span:nth-child(1) { animation-delay: 0s; }
+       .typing-indicator span:nth-child(2) { animation-delay: 0.15s; }
+       .typing-indicator span:nth-child(3) { animation-delay: 0.3s; }
+
+   </style>
+</head>
+<body>
+    <div class="image-upload">
+        <button class="image-upload-button" onclick="document.getElementById('imageInput').click()">
+            프로필 이미지 업로드
+        </button>
+        <input type="file" id="imageInput" accept="image/*" onchange="handleImageUpload(event)">
+    </div>
+
+    <div class="messenger-container">
+        <div class="messenger-header">
+            <div class="profile-img" id="profileImgContainer">
+                <div class="profile-img-default">FB</div>
+            </div>
+            <h2>저승사자</h2>
+        </div>
+        <div class="chat-area" id="chatArea">
+            <div class="message received">
+                <div class="message-bubble">
+                    안녕하세요!😊
+                </div>
+            </div>
+        </div>
+        <div class="like-section">
+            <button class="like-count-button" onclick="increaseLikes()">
+                <span class="like-icon">👍</span>
+                <span class="like-text">좋아요</span>
+            </button>
+            <span class="like-counter">0</span>
+        </div>
+        <button class="draw-button" id="drawButton" onclick="startDraw()">추첨하기</button>
+    </div>
+    <div class="win-effect" id="winEffect"></div>
+   <div class="particles-container" id="particlesContainer"></div>
+
+    <script>
+        function handleImageUpload(event) {
+            const file = event.target.files[0];
+            if (file && file.type.startsWith('image/')) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const container = document.getElementById('profileImgContainer');
+                    container.innerHTML = `<img src="${e.target.result}" class="profile-img" alt="프로필 이미지">`;
+                    
+                    // 이미지 업로드 후 업로드 섹션 제거
+                    const uploadSection = document.querySelector('.image-upload');
+                    uploadSection.style.animation = 'fadeOut 0.5s';
+                    setTimeout(() => {
+                        uploadSection.remove();
+                    }, 500);
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        const chatArea = document.getElementById('chatArea');
+        const drawButton = document.getElementById('drawButton');
+        let isDrawing = false;
+
+        const results = [
+            {
+                type: 'NPC',
+                probability: 0.01,
+                messages: [
+                    "와! 대박! 🎉",
+                    "기적의 확률을 뚫으셨네요!",
+                    "축하합니다! NPC 출연권을 획득하셨습니다! 🌟"
+                ]
+            },
+            {
+                type: 'COMMENT',
+                probability: 0.04,
+                messages: [
+                    "축하드려요! ✨",
+                    "당신의 댓글이 특별한 관심을 받았네요!",
+                    "댓글 출연권의 주인공이 되셨습니다! 🎈"
+                ]
+            },
+            {
+                type: 'CARD',
+                probability: 0.95,
+                messages: [
+                    "띵동! 📬",
+                    "페이크북의 친구를 만나보세요!",
+                    "NPC 카드를 뽑아보세요! 🎴"
+                ]
+            }
+        ];
+
+        function addMessage(text, isReceived = true) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${isReceived ? 'received' : 'sent'}`;
+            messageDiv.innerHTML = `<div class="message-bubble">${text}</div>`;
+            chatArea.appendChild(messageDiv);
+            setTimeout(() => messageDiv.classList.add('show'), 100);
+            chatArea.scrollTop = chatArea.scrollHeight;
+        }
+
+        async function startDraw() {
+    if (isDrawing) return;
+    isDrawing = true;
+    drawButton.disabled = true;
+
+    // 이전 메시지와의 간격 추가
+    const spacerDiv = document.createElement('div');
+    spacerDiv.style.height = '40px';
+    chatArea.appendChild(spacerDiv);
+
+    // 타이핑 애니메이션 추가
+    const typingMessageDiv = document.createElement('div');
+typingMessageDiv.className = 'message received';
+typingMessageDiv.innerHTML = '<div class="message-bubble typing-indicator"><span></span><span></span><span></span></div>';
+chatArea.appendChild(typingMessageDiv);
+setTimeout(() => typingMessageDiv.classList.add('show'), 100);
+chatArea.scrollTop = chatArea.scrollHeight;
+
+    // 타이핑 애니메이션 대기
+    await new Promise(resolve => setTimeout(resolve, 2000));
+typingMessageDiv.querySelector('.message-bubble').innerHTML = '띵동! 📬';
+typingMessageDiv.querySelector('.message-bubble').classList.remove('typing-indicator');
+
+    // 결과 메시지 추가
+    const random = Math.random();
+    let selectedResult;
+    let probabilitySum = 0;
+
+    for (const result of results) {
+        probabilitySum += result.probability;
+        if (random <= probabilitySum) {
+            selectedResult = result;
+            break;
+        }
+    }
+
+    for (const message of selectedResult.messages.slice(1)) {
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        addMessage(message);
+    }
+
+    setTimeout(() => {
+        isDrawing = false;
+        drawButton.disabled = false;
+    }, 1000);
+}
+
+
+    
+        let likeCount = 0;
+
+function increaseLikes() {
+    likeCount++;
+    const counter = document.querySelector('.like-counter');
+    counter.textContent = likeCount;
+    
+    // 좋아요 효과 생성
+    const button = document.querySelector('.like-count-button');
+    const rect = button.getBoundingClientRect();
+    
+    const hearts = ['❤️', '👍', '😊', '🎉'];
+    for(let i = 0; i < 3; i++) {
+        const particle = document.createElement('span');
+        particle.className = 'particle';
+        particle.innerHTML = hearts[Math.floor(Math.random() * hearts.length)];
+        particle.style.left = `${rect.left + rect.width/2}px`;
+        particle.style.top = `${rect.top}px`;
+        particle.style.setProperty('--tx', `${(Math.random() - 0.5) * 100}px`);
+        particle.style.setProperty('--ty', `-${50 + Math.random() * 50}px`);
+        document.querySelector('.particles-container').appendChild(particle);
+        setTimeout(() => particle.remove(), 1000);
+    }
+}
+
+          // 좋아요 기능 추가
+       function addLikeFeature(messageBubble) {
+           const likeButton = document.createElement('div');
+           likeButton.className = 'like-button';
+           likeButton.innerHTML = '👍';
+           likeButton.onclick = (e) => {
+               e.stopPropagation();
+               messageBubble.classList.toggle('liked');
+               if(messageBubble.classList.contains('liked')) {
+                   createLikeEffect(e);
+               }
+           };
+           messageBubble.appendChild(likeButton);
+       }
+
+       // 좋아요 이펙트
+       function createLikeEffect(e) {
+           const hearts = ['❤️', '👍', '😊', '🎉'];
+           for(let i = 0; i < 8; i++) {
+               const particle = document.createElement('span');
+               particle.className = 'particle';
+               particle.innerHTML = hearts[Math.floor(Math.random() * hearts.length)];
+               particle.style.left = `${e.pageX}px`;
+               particle.style.top = `${e.pageY}px`;
+               particle.style.setProperty('--tx', `${(Math.random() - 0.5) * 200}px`);
+               particle.style.setProperty('--ty', `${-100 - Math.random() * 100}px`);
+               document.querySelector('.particles-container').appendChild(particle);
+               setTimeout(() => particle.remove(), 1000);
+           }
+       }
+
+       // 당첨 효과
+       function showWinEffect(type) {
+           const effect = document.getElementById('winEffect');
+           effect.className = 'win-effect ' + (type === 'NPC' ? 'gold' : 'silver');
+           effect.style.opacity = '1';
+           
+           // 파티클 생성
+           for(let i = 0; i < 50; i++) {
+               setTimeout(() => {
+                   const particle = document.createElement('div');
+                   particle.className = 'particle';
+                   particle.style.left = `${Math.random() * 100}vw`;
+                   particle.style.top = `${Math.random() * 100}vh`;
+                   particle.style.setProperty('--tx', `${(Math.random() - 0.5) * 200}px`);
+                   particle.style.setProperty('--ty', `${(Math.random() - 0.5) * 200}px`);
+                   particle.style.backgroundColor = type === 'NPC' ? '#FFD700' : '#C0C0C0';
+                   document.querySelector('.particles-container').appendChild(particle);
+                   setTimeout(() => particle.remove(), 1000);
+               }, i * 50);
+           }
+
+           setTimeout(() => {
+               effect.style.opacity = '0';
+           }, 3000);
+       }
+
+       // 수정된 메시지 추가 함수
+       function addMessage(text, isReceived = true) {
+           const messageDiv = document.createElement('div');
+           messageDiv.className = `message ${isReceived ? 'received' : 'sent'}`;
+           
+           const messageBubble = document.createElement('div');
+           messageBubble.className = 'message-bubble';
+           messageBubble.innerHTML = text;
+           
+           if(isReceived) {
+               addLikeFeature(messageBubble);
+           }
+           
+           messageDiv.appendChild(messageBubble);
+           chatArea.appendChild(messageDiv);
+           
+           setTimeout(() => messageDiv.classList.add('show'), 100);
+           chatArea.scrollTop = chatArea.scrollHeight;
+       }
+   </script>
+</body>
+</html>
