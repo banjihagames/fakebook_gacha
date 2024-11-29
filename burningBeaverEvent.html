@@ -185,23 +185,26 @@
 
         /* 좋아요 효과 관련 스타일 */
 
-       .like-button {
-           position: absolute;
-           right: -20px;
-           bottom: -10px;
-           background: white;
-           border-radius: 50%;
-           width: 25px;
-           height: 25px;
-           display: flex;
-           align-items: center;
-           justify-content: center;
-           box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-           cursor: pointer;
-           opacity: 0;
-           transform: scale(0);
-           transition: all 0.3s ease;
-       }
+.like-button {
+    position: relative;
+    margin-left: 10px; /* 메시지 버블 오른쪽에 위치 */
+    background: white;
+    border-radius: 50%;
+    width: 25px;
+    height: 25px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    cursor: pointer;
+    opacity: 0;
+    transform: scale(0);
+    transition: all 0.3s ease;
+}
+      /* 부모 요소 스타일 추가 */
+.message-bubble {
+    position: relative; /* like-button의 기준 위치 설정 */
+}
 
 
        .liked .like-button {
